@@ -2,6 +2,7 @@
 /whoport
 /whoport.exe
 /whoport-*
+/dist/
 
 # 测试临时文件
 *.test

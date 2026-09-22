@@ -17,7 +17,10 @@ import (
 	"golang.org/x/term"
 )
 
-const version = "0.1.0"
+// version 由构建时通过 -ldflags "-X .../cli.version=v1.2.3" 注入。
+// 源码里的默认值是给 go build / go run 直接构建时用的，GoReleaser 会覆盖它。
+// 必须是 var 而不是 const——链接器只能改写变量。
+var version = "dev"
 
 type options struct {
 	list        bool

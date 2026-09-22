@@ -1,0 +1,61 @@
+# GoReleaser v2 配置。推送 v* 标签时由 .github/workflows/release.yml 触发。
+# 本地验证：goreleaser check && goreleaser build --snapshot --clean
+version: 2
+
+project_name: whoport
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: whoport
+    main: .
+    binary: whoport
+    env:
+      # 纯 Go，关掉 cgo 才能交叉编译出静态单文件
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      # 注入版本号，否则 --version 会显示源码里的 "dev" 默认值
+      - -X github.com/manyerror/whoport/internal/cli.version={{ .Version }}
+    goos:
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: whoport
+    # 用 zip 而不是 GoReleaser 默认的 tar.gz：这是个 Windows 优先的工具，
+    # Windows 自带解压 zip，解 tar.gz 还得额外装工具
+    formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+
+release:
+  draft: false
+  # 带 -rc / -beta 后缀的标签自动标记为预发布
+  prerelease: auto
+
+snapshot:
+  version_template: '{{ incpatch .Version }}-next'

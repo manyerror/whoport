@@ -1,5 +1,11 @@
 # whoport
 
+[![CI](https://github.com/manyerror/whoport/actions/workflows/ci.yml/badge.svg)](https://github.com/manyerror/whoport/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/manyerror/whoport)](https://github.com/manyerror/whoport/releases)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/manyerror/whoport)](go.mod)
+[![License](https://img.shields.io/github/license/manyerror/whoport)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-blue)
+
 按端口找到占用它的进程并终止 —— **并且告诉你这是谁启的**。
 
 ```
@@ -30,13 +36,17 @@ $ whoport 3000
 
 ## 安装
 
-从 [Releases](../../releases) 下载对应平台的二进制，解压后放进 `PATH`。
+从 [Releases](../../releases) 下载对应平台的压缩包，解压后把可执行文件放进 `PATH` 里的任意目录。
 
 或者用 Go 装：
 
 ```bash
 go install github.com/manyerror/whoport@latest
 ```
+
+> **Windows 注意**：cmd 和 PowerShell 默认不在当前目录查找可执行文件（这点和 Linux 相反）。
+> 如果你把 `whoport.exe` 放在某个目录里而没有加进 `PATH`，即使 `cd` 进去了也要写 `.\whoport.exe`，
+> 直接敲 `whoport` 会报"不是内部或外部命令"。
 
 ## 用法
 
@@ -125,6 +135,21 @@ GOOS=linux GOARCH=amd64 go build -o whoport-linux .
 ```
 
 已实测通过的平台：windows/amd64、windows/arm64、linux/amd64、linux/arm64、darwin/amd64、darwin/arm64。
+
+### 版本号
+
+`--version` 显示的版本号由构建时注入，源码里的默认值是 `dev`：
+
+```bash
+go build -ldflags="-s -w -X github.com/manyerror/whoport/internal/cli.version=v1.2.3" -o whoport .
+```
+
+正式发版由 GoReleaser 完成（见 [.goreleaser.yaml](.goreleaser.yaml)）——推送 `v*` 标签即可触发，
+自动产出 6 个平台的压缩包和校验和。本地想验证构建流程：
+
+```bash
+goreleaser build --snapshot --clean
+```
 
 ## 已知限制
 

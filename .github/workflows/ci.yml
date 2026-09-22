@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: 测试 (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # 一个平台失败也要看完其他平台的结果，不然修完一个才发现还有别的
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # 只在 Linux 上查一次格式：gofmt 的输出在 Windows 上带反斜杠，
+      # 而且三个平台查同一份源码没有意义
+      - name: 检查格式
+        if: runner.os == 'Linux'
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "以下文件未格式化，请运行 gofmt -w ."
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      # Windows 必须跑：internal/kill 下的终止与 PID 回收防护测试是
+      # windows-only 的，只在 Linux 上跑等于没测到最危险的那段代码
+      - name: go test
+        run: go test -count=1 ./...
+
+  cross-build:
+    name: 交叉编译全部目标平台
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: 编译
+        run: |
+          set -e
+          for target in \
+            windows/amd64 windows/arm64 \
+            linux/amd64   linux/arm64 \
+            darwin/amd64  darwin/arm64
+          do
+            GOOS=${target%/*} GOARCH=${target#*/} CGO_ENABLED=0 \
+              go build -trimpath -ldflags="-s -w" -o /dev/null .
+            echo "  $target 通过"
+          done
