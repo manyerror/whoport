@@ -1,0 +1,9 @@
+# 统一用 LF 存储和检出。
+# 不加这个，Windows 上提交的文件会带 CRLF，其他平台的贡献者拉下来会看到整文件 diff。
+* text=auto eol=lf
+
+# 二进制文件不做换行转换
+*.exe binary
+*.png binary
+*.jpg binary
+*.ico binary

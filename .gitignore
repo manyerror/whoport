@@ -1,0 +1,17 @@
+# 构建产物
+/whoport
+/whoport.exe
+/whoport-*
+
+# 测试临时文件
+*.test
+/wp_test.json
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 本地工具配置（权限白名单是本机私有的，不进仓库）
+.claude/settings.local.json
